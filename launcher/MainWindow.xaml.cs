@@ -36,13 +36,55 @@ namespace InfamousLauncher
                 "Enter     menü             Oklar     yön tuşları\n" +
                 "Y  fare/kamera değiştir    F11 tam ekran   F9 duraklat\n" +
                 "Ctrl + Shift + End  emülatörü kapat";
+#if SHOTS
+            if (SetupShot()) return;
+#endif
             SourceInitialized += (_, _) => ApplyBackdrop();
             Loaded += (_, _) => LoadSaved();
         }
 
+#if SHOTS
+        // Yalnızca README ekran görüntüleri için ayrı derleme: pencere ekran dışında açılır, odak almaz.
+        string? shotTheme;
+        bool SetupShot()
+        {
+            var a = Environment.GetCommandLineArgs();
+            int i = Array.IndexOf(a, "--shot"); if (i < 0 || i + 1 >= a.Length) return false;
+            string outPng = a[i + 1];
+            int f = Array.IndexOf(a, "--folder"); string? folder = f >= 0 ? a[f + 1] : null;
+            int t = Array.IndexOf(a, "--theme"); shotTheme = t >= 0 ? a[t + 1] : "dark";
+            noSave = true;
+            ApplyTheme();
+            ShowActivated = false; ShowInTaskbar = false; WindowStartupLocation = WindowStartupLocation.Manual; Left = -20000; Top = -20000;
+            Background = new SolidColorBrush(IsDark() ? Color.FromRgb(0x1C, 0x1C, 0x1E) : Color.FromRgb(0xF2, 0xF2, 0xF7));
+            ContentRendered += (_, _) =>
+            {
+                if (folder != null) Validate(folder);
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    var root = (FrameworkElement)Content;
+                    root.UpdateLayout();
+                    double sc = 2;
+                    var bmp = new System.Windows.Media.Imaging.RenderTargetBitmap((int)(ActualWidth * sc), (int)(ActualHeight * sc), 96 * sc, 96 * sc, PixelFormats.Pbgra32);
+                    var dv = new DrawingVisual();
+                    using (var dc = dv.RenderOpen()) { dc.DrawRectangle(Background, null, new Rect(0, 0, ActualWidth, ActualHeight)); dc.DrawRectangle(new VisualBrush(root) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top }, null, new Rect(root.TranslatePoint(new Point(0, 0), this), new Size(root.ActualWidth, root.ActualHeight))); }
+                    bmp.Render(dv);
+                    var enc = new System.Windows.Media.Imaging.PngBitmapEncoder(); enc.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bmp));
+                    using (var fs = File.Create(outPng)) enc.Save(fs);
+                    Application.Current.Shutdown();
+                }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            };
+            return true;
+        }
+#endif
+        bool noSave;
+
         // ---- Görünüm ----
         bool IsDark()
         {
+#if SHOTS
+            if (shotTheme != null) return shotTheme == "dark";
+#endif
             try { using var k = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"); return (k?.GetValue("AppsUseLightTheme") as int?) == 0; }
             catch { return true; }
         }
@@ -131,7 +173,7 @@ namespace InfamousLauncher
             gameDir = dir; titleId = r.TitleId;
             ShowStatus($"Tamam: {r.Title} ({r.TitleId}, sürüm {r.Version}). Oyna'ya basabilirsin.", true);
             PlayBtn.IsEnabled = true;
-            try { Save(dir); } catch { }
+            if (!noSave) { try { Save(dir); } catch { } }
         }
 
         void ShowStatus(string msg, bool ok)

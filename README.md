@@ -8,6 +8,8 @@ uğraşmana gerek yok, hepsi hazır.
 hazırladığı shadPS4 1.1.1, FPS sorununu çözen ayar (present mode Immediate), klavye ve fare
 tuşlarım ve Paper Trail bölümünün kilidini açan küçük yama.
 
+![Başlatıcı](docs/baslatici.png)
+
 ## Kurulum
 
 1. [Sürümler](../../releases/latest) sayfasından `inFAMOUS-SecondSon-Kutay.zip` dosyasını indir.
