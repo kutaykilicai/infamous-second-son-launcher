@@ -1,0 +1,24 @@
+Paper Trail yaması (shadPS4.exe, AxylPup second-son-v1.1.1 üzerine)
+
+Oyunun Paper Trail bölümü PSN'e giriş yapılmış mı diye bakıyor. shadNet kapalıyken
+emülatör "giriş yok" dediği için bölüm kilitli kalıyordu. Bu paketteki shadPS4.exe,
+AxylPup'ın resmi 1.1.1 sürümünün üç küçük yerinde bayt düzeyinde değiştirilmiş halidir.
+Oyun dosyalarına dokunulmaz, ağ bağlantısı açılmaz.
+
+1) sceNpGetState: çevrimdışı daldaki dönüş değeri SignedIn (2) yapıldı.
+   Dosya ofsetleri 0x1AE1339 ve 0x1AE1456.
+2) sceNpGetOnlineId: çevrimdışı dalda OnlineId sıfırlanıp "shadPS4" yazılıyor ve
+   ORBIS_OK dönülüyor. Dosya aralığı 0x1AE0F45 .. 0x1AE0F69:
+   31 C0 48 89 06 48 89 46 08 89 46 10 C7 06 73 68 61 64 66 C7 46 04 50 53
+   C6 46 06 34 31 C0 90 90 E9 D0 FF FF FF
+3) Kullanıcı giriş olayı (event 0, shadNet kapalı dal) SignedIn olarak bildiriliyor.
+   0x1AE2628: 37 -> 48
+   0x1AE2671 .. 0x1AE2679: 89 F1 BA 02 00 00 00 EB ED
+
+SHA-256
+  Değiştirilmiş exe: DFACDD447C4033E88390B261E19423F2611885091D3EDF6CB50E68EC802BF33A
+
+Kaynak kodu
+  Değişiklik yapılmamış kaynak: https://github.com/axylpup/shadPS4/tree/second-son-v1.1.1
+  Yukarıdaki baytlar bu kaynaktan derlenmiş resmi exe'ye uygulanmıştır.
+  Lisans: GPL-2.0-or-later (emulator/LICENSE).
